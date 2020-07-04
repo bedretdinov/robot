@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block body %}
+    <button type="button" class="btn btn-success">Start</button>
+    <button type="button" class="btn btn-danger">Stop</button>
+
+    <canvas id="videoStrem" width =800 height=800></canvas>
+    <script>
+        var socket = new WebSocket("ws://192.168.1.115:13254");
+        socket.onopen = function() {
+          //alert("Соединение установлено.");
+
+            setInterval(function () {
+                socket.send("capture");
+            })
+
+        };
+
+        socket.onclose = function(event) {
+          if (event.wasClean) {
+            alert('Соединение закрыто чисто');
+          } else {
+            alert('Обрыв соединения'); // например, "убит" процесс сервера
+          }
+          alert('Код: ' + event.code + ' причина: ' + event.reason);
+        };
+
+        socket.onmessage = function(event) {
+
+            var canvas = document.getElementById("videoStrem");
+            var ctx = canvas.getContext("2d");
+
+            var image = new Image();
+            image.onload = function() {
+              ctx.drawImage(image, 0, 0);
+            };
+            image.src = "data:image/png;base64,"+event.data;
+        };
+
+        socket.onerror = function(error) {
+          alert("Ошибка " + error.message);
+        };
+    </script>
+{% endblock %}
+
+
